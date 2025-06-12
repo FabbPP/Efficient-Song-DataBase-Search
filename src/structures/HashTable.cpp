@@ -1,90 +1,103 @@
-#include "HashTable.h"
-#include <algorithm>
-#include <limits>
+#include "../../include/structures/HashTable.h"
+#include <iostream>
 
-MusicHashTable::MusicHashTable() {}
-
-MusicHashTable::~MusicHashTable() {
-    // Limpiar vectores de usuarios
-    std::vector<Cancion*>* lista_canciones;
-    // Nota: Necesitaríamos iterar sobre todos los usuarios, pero como es template
-    // esto requiere una implementación más compleja. Por simplicidad, asumimos
-    // que el usuario maneja la limpieza de memoria externamente.
+template<typename K, typename V>
+HashTable<K, V>::HashTable(size_t size) : table_size(size), num_elements(0) {
+    table.resize(table_size);
 }
 
-bool MusicHashTable::insertarPorCodigo(const std::string& codigo, Cancion* cancion) {
-    if (!cancion) return false;
-    return codigo_table.insert(codigo, cancion);
+template<typename K, typename V>
+size_t HashTable<K, V>::hash(const K& key) const {
+    return std::hash<K>{}(key) % table_size;
 }
 
-Cancion* MusicHashTable::buscarPorCodigo(const std::string& codigo) const {
-    Cancion* cancion = nullptr;
-    if (codigo_table.search(codigo, cancion)) {
-        return cancion;
+template<typename K, typename V>
+void HashTable<K, V>::rehash() {
+    if (num_elements > table_size * 0.75) {
+        std::vector<std::list<HashNode>> old_table = table;
+        size_t old_size = table_size;
+        
+        table_size *= 2;
+        table.clear();
+        table.resize(table_size);
+        num_elements = 0;
+        
+        for (auto& bucket : old_table) {
+            for (auto& node : bucket) {
+                insert(node.key, node.value);
+            }
+        }
+        
+        std::cout << "HashTable rehashed from " << old_size << " to " << table_size << std::endl;
     }
-    return nullptr;
 }
 
-bool MusicHashTable::eliminarPorCodigo(const std::string& codigo) {
-    return codigo_table.remove(codigo);
-}
-
-bool MusicHashTable::insertarPorUsuario(const std::string& usuario, Cancion* cancion) {
-    if (!cancion) return false;
-    
-    std::vector<Cancion*>* lista_canciones = nullptr;
-    
-    if (usuario_table.search(usuario, lista_canciones)) {
-        // Usuario ya existe, agregar canción a su lista
-        lista_canciones->push_back(cancion);
-    } else {
-        // Nuevo usuario, crear lista
-        lista_canciones = new std::vector<Cancion*>();
-        lista_canciones->push_back(cancion);
-        usuario_table.insert(usuario, lista_canciones);
+template<typename K, typename V>
+void HashTable<K, V>::insert(const K& key, const V& value) {
+    size_t index = hash(key);
+    auto& bucket = table[index];
+    for (auto& node : bucket) {
+        if (node.key == key) {
+            node.value = value; 
+            return;
+        }
     }
-    
-    return true;
+    bucket.emplace_back(key, value);
+    num_elements++;
+    rehash();
 }
 
-std::vector<Cancion*>* MusicHashTable::buscarPorUsuario(const std::string& usuario) const {
-    std::vector<Cancion*>* lista_canciones = nullptr;
-    if (usuario_table.search(usuario, lista_canciones)) {
-        return lista_canciones;
+template<typename K, typename V>
+bool HashTable<K, V>::find(const K& key, V& value) const {
+    size_t index = hash(key);
+    const auto& bucket = table[index];
+    
+    for (const auto& node : bucket) {
+        if (node.key == key) {
+            value = node.value;
+            return true;
+        }
     }
-    return nullptr;
+    return false;
 }
-
-bool MusicHashTable::eliminarCancionDeUsuario(const std::string& usuario, const std::string& codigo) {
-    std::vector<Cancion*>* lista_canciones = buscarPorUsuario(usuario);
-    if (!lista_canciones) return false;
+template<typename K, typename V>
+bool HashTable<K, V>::remove(const K& key) {
+    size_t index = hash(key);
+    auto& bucket = table[index];
     
-    auto it = std::find_if(lista_canciones->begin(), lista_canciones->end(),
-        [&codigo](const Cancion* c) {
-            return c->getCodigo() == codigo;
-        });
-    
-    if (it != lista_canciones->end()) {
-        lista_canciones->erase(it);
-        return true;
+    for (auto it = bucket.begin(); it != bucket.end(); ++it) {
+        if (it->key == key) {
+            bucket.erase(it);
+            num_elements--;
+            return true;
+        }
     }
     return false;
 }
 
-std::vector<std::pair<Cancion*, double>> MusicHashTable::buscarSimilares(const Cancion& cancion_base, size_t max_resultados) const {
-    std::vector<std::pair<Cancion*, double>> similares;
-    
-    // Nota: Esta implementación es O(n) porque necesitamos recorrer toda la tabla
-    // En una implementación real, mantendríamos una lista de todas las canciones
-    // Por ahora, esta es una implementación conceptual
-    
-    return similares; // Implementación simplificada
+template<typename K, typename V>
+void HashTable<K, V>::clear() {
+    for (auto& bucket : table) {
+        bucket.clear();
+    }
+    num_elements = 0;
 }
 
-void MusicHashTable::printStats() const {
-    std::cout << "=== Music Hash Table Statistics ===" << std::endl;
-    std::cout << "Tabla de códigos de canción:" << std::endl;
-    codigo_table.print_stats();
-    std::cout << "\nTabla de usuarios:" << std::endl;
-    usuario_table.print_stats();
+template<typename K, typename V>
+void HashTable<K, V>::print() const {
+    std::cout << "HashTable Stats:" << std::endl;
+    std::cout << "Size: " << num_elements << std::endl;
+    std::cout << "Table Size: " << table_size << std::endl;
+    std::cout << "Load Factor: " << (double)num_elements / table_size << std::endl;
+    
+    int used_buckets = 0;
+    for (const auto& bucket : table) {
+        if (!bucket.empty()) {
+            used_buckets++;
+        }
+    }
+    std::cout << "Used Buckets: " << used_buckets << "/" << table_size << std::endl;
 }
+
+template class HashTable<std::string, class ValoracionCancion>;
+template class HashTable<std::string, std::vector<std::string>>;

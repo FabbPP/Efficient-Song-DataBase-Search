@@ -54,7 +54,7 @@ std::string Cancion::toString() const {
 }
 
 void Cancion::actualizarValoracion(double nueva_val, int total_valoraciones) {
-    // Calcular nuevo promedio
     valoracion = ((valoracion * num_valoraciones) + nueva_val) / (num_valoraciones + 1);
     num_valoraciones = total_valoraciones;
 }
+

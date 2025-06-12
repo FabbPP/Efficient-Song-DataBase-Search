@@ -39,4 +39,31 @@ public:
     void print() const;
     std::string toString() const;
 };
+
+struct ValoracionCancion {
+    std::string codigo_cancion;
+    double suma_valoraciones;
+    int num_valoraciones;
+    double promedio;
+    
+    ValoracionCancion() : codigo_cancion(""), suma_valoraciones(0.0), 
+                         num_valoraciones(0), promedio(0.0) {}
+    
+    ValoracionCancion(const std::string& cod, double val) 
+        : codigo_cancion(cod), suma_valoraciones(val), num_valoraciones(1), promedio(val) {}
+    
+    void agregarValoracion(double val) {
+        suma_valoraciones += val;
+        num_valoraciones++;
+        promedio = suma_valoraciones / num_valoraciones; //Para basarnos para las 10 mejores canciones segun la cantidad de valoraciones tmb
+    }
+    
+    bool operator<(const ValoracionCancion& other) const {
+        return promedio < other.promedio;
+    }
+    
+    bool operator>(const ValoracionCancion& other) const {
+        return promedio > other.promedio;
+    }
+};
 #endif // CANCION_H
