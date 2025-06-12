@@ -1,44 +1,45 @@
 #include "../../include/gestor_musica.h"
 #include <iostream>
+using namespace std;
 //Aca se lee el archivo
 GestorMusica::GestorMusica() {}
 GestorMusica::~GestorMusica() {}
 
 bool GestorMusica::cargarCSV(const std::string& archivo) {
-    std::ifstream file(archivo);
+    ifstream file(archivo);
     if (!file.is_open()) {
-        std::cerr << "No se puede encontrar/abrir el archivo " << archivo << std::endl;
+        cerr << "No se puede encontrar/abrir el archivo " << archivo << std::endl;
         return false;
     }
-    std::string linea;
+    string linea;
     int linea_num = 0;
-    while (std::getline(file, linea)) {
+    while (getline(file, linea)) {
         linea_num++;
         if (linea.empty()) continue;
         
-        std::stringstream ss(linea);
-        std::string usuario, cancion, valoracion_str, coordenada_str;
-        if (std::getline(ss, usuario, ',') &&
-            std::getline(ss, cancion, ',') &&
-            std::getline(ss, valoracion_str, ',') &&
-            std::getline(ss, coordenada_str, ',')) { 
+        stringstream ss(linea);
+        string usuario, cancion, valoracion_str, coordenada_str;
+        if (getline(ss, usuario, ',') &&
+            getline(ss, cancion, ',') &&
+            getline(ss, valoracion_str, ',') &&
+            getline(ss, coordenada_str, ',')) { 
             try {
-                double valoracion = std::stod(valoracion_str);
-                double coordenada_x = std::stod(coordenada_str); // Cuando la carga supera 75%
-                if (linea_num % 10000 == 0) {
-                    std::cout << "Procesadas " << linea_num << std::endl;
+                double valoracion = stod(valoracion_str);
+                double coordenada_x = stod(coordenada_str); //Convierte los double en string 
+                if (linea_num % 10000 == 0) {// Cuando la carga supera 75%
+                    cout << "Procesadas " << linea_num << std::endl;
                 }
             } catch (const std::exception& e) {
-                std::cerr << "Error " << linea_num << ": " << e.what() << std::endl;
+                cerr << "Error " << linea_num << ": " << e.what() << std::endl;
             }
         }
     }
     file.close();
-    std::cout << "Lineas procesadas, proceso terminado : " << linea_num << std::endl;
+    cout << "Lineas procesadas, proceso terminado : " << linea_num << std::endl;
     return true;
 }
 
-void GestorMusica::agregarValoracion(const std::string& usuario, const std::string& cancion, 
+void GestorMusica::agregarValoracion(const string& usuario, const string& cancion, 
                                    double valoracion, double coordenada_x) {
     // Buscar valoración existente
     ValoracionCancion val_actual;
@@ -51,10 +52,7 @@ void GestorMusica::agregarValoracion(const std::string& usuario, const std::stri
     } else {
         val_actual = ValoracionCancion(cancion, valoracion);
     }
-    
-    // Actualizar hash table
     valoraciones_por_cancion.insert(cancion, val_actual);
-    
     // Actualizar B-Trees
     // Para mejores canciones
     CancionMejor mejor = val_actual.toCancionMejor();
@@ -65,9 +63,9 @@ void GestorMusica::agregarValoracion(const std::string& usuario, const std::stri
     peores_canciones.Insert(peor);
     
     // Manejar usuarios
-    std::vector<std::string> canciones_usuario;
+    vector<string> canciones_usuario;
     if (usuarios.find(usuario, canciones_usuario)) {
-        if (std::find(canciones_usuario.begin(), canciones_usuario.end(), cancion) == canciones_usuario.end()) {
+        if (find(canciones_usuario.begin(), canciones_usuario.end(), cancion) == canciones_usuario.end()) {
             canciones_usuario.push_back(cancion);
             usuarios.insert(usuario, canciones_usuario);
         }
@@ -77,45 +75,45 @@ void GestorMusica::agregarValoracion(const std::string& usuario, const std::stri
     }
 }
 
-std::vector<CancionMejor> GestorMusica::getMejores10() {
+vector<CancionMejor> GestorMusica::getMejores10() {
     return mejores_canciones.getTop(10);
 }
 
-std::vector<CancionPeor> GestorMusica::getPeores10() {
+vector<CancionPeor> GestorMusica::getPeores10() {
     return peores_canciones.getTop(10);
 }
 
 void GestorMusica::mostrarEstadisticas() const {
-    std::cout << "\n=== ESTADÍSTICAS DEL GESTOR DE MÚSICA ===" << std::endl;
-    std::cout << "Total de canciones en sistema: " << valoraciones_por_cancion.size() << std::endl;
-    std::cout << "Total de usuarios: " << usuarios.size() << std::endl;
+    cout << "\n=== ESTADÍSTICAS DEL GESTOR DE MÚSICA ===" <<endl;
+    cout << "Total de canciones en sistema: " << valoraciones_por_cancion.size() << endl;
+    cout << "Total de usuarios: " << usuarios.size() << endl;
     
-    std::cout << "\n--- TOP 10 MEJORES CANCIONES ---" << std::endl;
+    cout << "\n--- TOP 10 MEJORES CANCIONES ---" << endl;
     auto mejores = const_cast<GestorMusica*>(this)->getMejores10();
     for (size_t i = 0; i < mejores.size(); i++) {
-        std::cout << (i+1) << ". " << mejores[i].codigo_cancion 
+        cout << (i+1) << ". " << mejores[i].codigo_cancion 
                   << " - Promedio: " << mejores[i].promedio 
-                  << " (" << mejores[i].num_valoraciones << " valoraciones)" << std::endl;
+                  << " (" << mejores[i].num_valoraciones << " valoraciones)" << endl;
     }
     
-    std::cout << "\n--- TOP 10 PEORES CANCIONES ---" << std::endl;
+    cout << "\n--- TOP 10 PEORES CANCIONES ---" << endl;
     auto peores = const_cast<GestorMusica*>(this)->getPeores10();
     for (size_t i = 0; i < peores.size(); i++) {
-        std::cout << (i+1) << ". " << peores[i].codigo_cancion 
+        cout << (i+1) << ". " << peores[i].codigo_cancion 
                   << " - Promedio: " << peores[i].promedio 
-                  << " (" << peores[i].num_valoraciones << " valoraciones)" << std::endl;
+                  << " (" << peores[i].num_valoraciones << " valoraciones)" << endl;
     }
 }
 
 void GestorMusica::mostrarEstadisticasBTree() const {
-    std::cout << "\n=== ESTADÍSTICAS B-TREE ===" << std::endl;
-    std::cout << "Elementos en B-Tree mejores: " << mejores_canciones.getCount() << std::endl;
-    std::cout << "Elementos en B-Tree peores: " << peores_canciones.getCount() << std::endl;
+    cout << "\n=== ESTADÍSTICAS B-TREE ===" << endl;
+    cout << "Elementos en B-Tree mejores: " << mejores_canciones.getCount() << endl;
+    cout << "Elementos en B-Tree peores: " << peores_canciones.getCount() << endl;
 }
 
 // Instanciaciones explícitas para el template
-template class HashTable<std::string, ValoracionCancion>;
-template class HashTable<std::string, std::vector<std::string>>;
+template class HashTable<string, ValoracionCancion>;
+template class HashTable<string, vector<string>>;
 template class BTree<CancionMejor, 20>;
 template class BTree<CancionPeor, 20>;
 template class Node<CancionMejor, 20>;

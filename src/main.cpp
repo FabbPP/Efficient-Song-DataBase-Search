@@ -5,9 +5,9 @@ int main(){
     cout<<"Bienvenido a Sistema lector de canciones y consultas"<<endl;
     //Conseguir canciones leer archivo
     GestorMusica gestor;
-    std::string archivo;
-    std::cout << "Ingrese el nombre del archivo CSV: ";
-    std::getline(std::cin, archivo);
+    string archivo;
+    cout << "Ingrese el nombre del archivo CSV: ";
+    getline(cin, archivo);
     if (gestor.cargarCSV(archivo)) {        
         gestor.mostrarEstadisticas();
         gestor.mostrarEstadisticasBTree();
