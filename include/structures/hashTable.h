@@ -4,6 +4,7 @@
 #include <vector>
 #include <list>
 #include <functional>
+using namespace std;
 
 template<typename K, typename V>
 class HashTable {
@@ -13,7 +14,7 @@ private:
         V value;
         HashNode(const K& k, const V& v) : key(k), value(v) {}
     };
-    std::vector<std::list<HashNode>> table;
+    vector<list<HashNode>> table;
     size_t table_size;
     size_t num_elements;
     size_t hash(const K& key) const;

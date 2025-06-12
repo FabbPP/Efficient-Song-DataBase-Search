@@ -49,8 +49,8 @@ void BTree<T,Order>::Print () const
 }
 
 template <class T, int Order>
-std::vector<T> BTree<T, Order>::getTop(int n) const {
-    std::vector<T> result;
+vector<T> BTree<T, Order>::getTop(int n) const {
+    vector<T> result;
     if (root != nullptr) {
         root->getFirst(n, result); // Verifica que esta función existe en Node<T, Order>
     }

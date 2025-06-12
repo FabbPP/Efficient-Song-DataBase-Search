@@ -12,7 +12,7 @@ public:
     BTree();
     void Insert(T value);
     void Print() const;
-    std::vector<T> getTop(int n) const; // Obtener los primeros elementos del árbol
+    vector<T> getTop(int n) const; // Obtener los primeros elementos del árbol
     int getCount() const { return count; }
     ~BTree();
 };
