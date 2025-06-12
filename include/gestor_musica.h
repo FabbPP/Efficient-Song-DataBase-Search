@@ -1,46 +1,32 @@
-// GESTOR PRINCIPAL
-#ifndef GESTOR_MUSICA_H
-#define GESTOR_MUSICA_H
-
-#include <fstream>
-#include <sstream>
+#include "models/cancion.h"
+#include "structures/btree.h"
+#include <map>
+#include <string>
 #include <vector>
-#include <algorithm>
-#include <set>
-#include "../../include/structures/HashTable.h"
-#include "../models/cancion.h"
-#include "../../include/structures/BTree.h"
-#include "../../include/structures/Node.h"
 
 class GestorMusica {
 private:
-    // Hash table para  valoraciones
-    HashTable<std::string, ValoracionCancion> valoraciones_por_cancion;
-    HashTable<std::string, std::vector<std::string>> usuarios;
-    
-    // B-Trees para rankings 
-    BTree<CancionMejor, 20> mejores_canciones;  // Orden descendente
-    BTree<CancionPeor, 20> peores_canciones;    // Orden ascendente
-    
-    void actualizarRankings(const std::string& codigo_cancion, 
-                           const ValoracionCancion& valoracion_anterior,
-                           const ValoracionCancion& valoracion_nueva);
+    BTree<Cancion, 5> btree_canciones; // Usar tu B-Tree con orden 5
 
+    
 public:
     GestorMusica();
     ~GestorMusica();
     
-    bool cargarCSV(const std::string& archivo);
-    void agregarValoracion(const std::string& usuario, const std::string& cancion, 
-                          double valoracion, double coordenada_x);
+    // Funciones principales
+    bool cargarCSV(const string& archivo);
+    void procesarRegistro(const string& codigo_usuario, const string& codigo_cancion, 
+                         double valoracion, double coordenada);
     
-    // Consultas principales con B-Tree
-    std::vector<CancionMejor> getMejores10();
-    std::vector<CancionPeor> getPeores10();
+    // Consultas usando tu B-Tree
+    vector<Cancion> getMejores10();
+    vector<Cancion> getPeores10();
     
     // Estadísticas
-    void mostrarEstadisticas() const;
-    void mostrarEstadisticasBTree() const;
+    void mostrarEstadisticas();
+    void mostrarBTree();
+    
+    // Utilidades
+    size_t getTotalCanciones() const;
+    void reconstruirBTree(); // Reconstruir B-Tree con datos actualizados
 };
-
-#endif

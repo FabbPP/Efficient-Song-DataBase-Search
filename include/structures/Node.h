@@ -1,3 +1,8 @@
+#ifndef NODE_H
+#define NODE_H
+#include <vector>
+using namespace std;
+
 template<class T,int Order>
 struct Node
 {
@@ -14,5 +19,10 @@ struct Node
     void Print () ;
     void PrintUtil (int height,bool checkRoot);
     int getHeight () ;
+//para obetenr los elemnetos en orden ascendente descendebte, valoracion
+    void collectInOrder(vector<T>& result);
+    void collectReverseOrder(vector<T>& result);
+
     ~Node ();
 };
+#endif  // NODE_H

@@ -1,3 +1,6 @@
+#ifndef BTREE_H
+#define BTREE_H
+#include "../include/structures/Node.h"
 #include <vector>  // Asegúrate de incluir vector
 using namespace std;
 
@@ -13,6 +16,8 @@ public:
     void Insert(T value);
     void Print() const;
     vector<T> getTop(int n) const; // Obtener los primeros elementos del árbol
+    vector<T> getBottom(int n) const; //Obtener los ultimos elementos (peores)
     int getCount() const { return count; }
     ~BTree();
 };
+#endif  // BTREE_H

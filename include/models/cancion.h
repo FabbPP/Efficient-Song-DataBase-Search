@@ -13,7 +13,7 @@ private:
     double valoracion;
     double coordenada_x;
     int num_valoraciones; // Para calcular promedio
-
+    double suma_valoraciones;
 public:
     Cancion();
     Cancion(const string& cod, double val, double x);
@@ -29,18 +29,31 @@ public:
     void setValoracion(double val) { valoracion = val; }
     void setCoordenadaX(double x) { coordenada_x = x; }
     void incrementarValoraciones() { num_valoraciones++; }
-    Cancion& operator=(const Cancion& other);
-    bool operator==(const Cancion& other) const;
-    bool operator<(const Cancion& other) const;  // Para B-Tree (por valoración)
-    bool operator>(const Cancion& other) const;
     double distanciaManhattan(const Cancion& other) const;
     void actualizarValoracion(double nueva_val, int total_valoraciones);
 
-
+// Operadores para B-Tree. Comparacion entre elementos objetos Cancion, se comparan por la valorcion
+    bool operator<(const Cancion& other) const {
+        return valoracion < other.valoracion;
+    }
+    bool operator>(const Cancion& other) const {
+        return valoracion > other.valoracion;
+    }
+    bool operator==(const Cancion& other) const {
+        return codigo == other.codigo;
+    }
+    bool operator<=(const Cancion& other) const {
+        return valoracion <= other.valoracion;
+    }
+    bool operator>=(const Cancion& other) const {
+        return valoracion >= other.valoracion;
+    }
+    
     void print() const;
     string toString() const;
 };
-// Hash Table 
+/*
+//Valoracion Cancion para Hash Table 
 // Estructura para almacenar en hash table
 struct ValoracionCancion {
     string codigo_cancion;
@@ -48,71 +61,18 @@ struct ValoracionCancion {
     int num_valoraciones;
     double promedio;
     
-    ValoracionCancion() : codigo_cancion(""), suma_valoraciones(0.0), 
+    ValoracionCancion() : codigo_cancion(""), suma_valoraciones(0.0), //Constructor vacio
                          num_valoraciones(0), promedio(0.0) {}
     
-    ValoracionCancion(const std::string& cod, double val) 
+    ValoracionCancion(const std::string& cod, double val)  //Constructor
         : codigo_cancion(cod), suma_valoraciones(val), num_valoraciones(1), promedio(val) {}
     
     void agregarValoracion(double val) {
         suma_valoraciones += val;
         num_valoraciones++;
-        promedio = suma_valoraciones / num_valoraciones;
-    }
-    CancionMejor toCancionMejor() const {
-        return CancionMejor(codigo_cancion, promedio, num_valoraciones);
-    }
-    CancionPeor toCancionPeor() const {
-        return CancionPeor(codigo_cancion, promedio, num_valoraciones);
+        promedio = suma_valoraciones / num_valoraciones; //promedio por la cantidad de valoraciones
     }
 };
-//B Tree 10 mejores 10 peores
-struct CancionMejor {
-    string codigo_cancion;
-    double promedio;
-    int num_valoraciones;
-    CancionMejor() : codigo_cancion(""), promedio(0.0), num_valoraciones(0) {}
-    
-    CancionMejor(const std::string& cod, double prom, int num) 
-        : codigo_cancion(cod), promedio(prom), num_valoraciones(num) {}
-    bool operator<(const CancionMejor& other) const {
-        if (promedio != other.promedio) {
-            return promedio > other.promedio; // Orden descendente por valoración
-        }
-        return codigo_cancion < other.codigo_cancion; // Desempate por código
-    }  
-    bool operator==(const CancionMejor& other) const {
-        return codigo_cancion == other.codigo_cancion;
-    }
-    void print() const {
-        std::cout << "Canción: " << codigo_cancion 
-                  << ", Promedio: " << promedio 
-                  << " (" << num_valoraciones << " valoraciones)" << std::endl;
-    }
-};
-struct CancionPeor {
-    string codigo_cancion;
-    double promedio;
-    int num_valoraciones;
-    
-    CancionPeor() : codigo_cancion(""), promedio(0.0), num_valoraciones(0) {}
-    
-    CancionPeor(const std::string& cod, double prom, int num) 
-        : codigo_cancion(cod), promedio(prom), num_valoraciones(num) {}
-    bool operator<(const CancionPeor& other) const {
-        if (promedio != other.promedio) {
-            return promedio < other.promedio; // Orden ascendente por valoración
-        }
-        return codigo_cancion < other.codigo_cancion; // Desempate por código
-    }
-    bool operator==(const CancionPeor& other) const {
-        return codigo_cancion == other.codigo_cancion;
-    }
-    
-    void print() const {
-        std::cout << "Canción: " << codigo_cancion 
-                  << ", Promedio: " << promedio 
-                  << " (" << num_valoraciones << " valoraciones)" << std::endl;
-    }
-};
+*/
+
 #endif // CANCION_H

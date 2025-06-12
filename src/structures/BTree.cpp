@@ -1,4 +1,4 @@
-#include "BTree.h"
+#include "../include/structures/BTree.h"
 #include <iostream>
 #include <vector>
 using namespace std;
