@@ -1,5 +1,6 @@
 #include "BTree.h"
 #include <iostream>
+#include <vector>
 using namespace std;
 
 template <class T,int Order>
@@ -47,6 +48,14 @@ void BTree<T,Order>::Print () const
     else cout<<"The B-Tree is Empty"<<endl;
 }
 
+template <class T, int Order>
+std::vector<T> BTree<T, Order>::getTop(int n) const {
+    std::vector<T> result;
+    if (root != nullptr) {
+        root->getFirst(n, result); // Verifica que esta función existe en Node<T, Order>
+    }
+    return result;
+}
 
 template <class T,int Order>
 BTree<T,Order>::~BTree ()
