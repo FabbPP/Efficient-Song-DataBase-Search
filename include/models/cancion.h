@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <cmath>
+using namespace std;
 
 class Cancion {
 private:
@@ -15,16 +16,16 @@ private:
 
 public:
     Cancion();
-    Cancion(const std::string& cod, double val, double x);
+    Cancion(const string& cod, double val, double x);
     Cancion(const Cancion& other);
     ~Cancion();
     
     // Getters y Setters
-    std::string getCodigo() const { return codigo; }
+    string getCodigo() const { return codigo; }
     double getValoracion() const { return valoracion; }
     double getCoordenadaX() const { return coordenada_x; }
     int getNumValoraciones() const { return num_valoraciones; }
-    void setCodigo(const std::string& cod) { codigo = cod; }
+    void setCodigo(const string& cod) { codigo = cod; }
     void setValoracion(double val) { valoracion = val; }
     void setCoordenadaX(double x) { coordenada_x = x; }
     void incrementarValoraciones() { num_valoraciones++; }
@@ -37,12 +38,12 @@ public:
 
 
     void print() const;
-    std::string toString() const;
+    string toString() const;
 };
 // Hash Table 
 // Estructura para almacenar en hash table
 struct ValoracionCancion {
-    std::string codigo_cancion;
+    string codigo_cancion;
     double suma_valoraciones;
     int num_valoraciones;
     double promedio;
@@ -67,7 +68,7 @@ struct ValoracionCancion {
 };
 //B Tree 10 mejores 10 peores
 struct CancionMejor {
-    std::string codigo_cancion;
+    string codigo_cancion;
     double promedio;
     int num_valoraciones;
     CancionMejor() : codigo_cancion(""), promedio(0.0), num_valoraciones(0) {}
@@ -90,7 +91,7 @@ struct CancionMejor {
     }
 };
 struct CancionPeor {
-    std::string codigo_cancion;
+    string codigo_cancion;
     double promedio;
     int num_valoraciones;
     
