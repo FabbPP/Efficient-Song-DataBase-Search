@@ -40,6 +40,7 @@ public:
     std::string toString() const;
 };
 // Hash Table 
+// Estructura para almacenar en hash table
 struct ValoracionCancion {
     std::string codigo_cancion;
     double suma_valoraciones;
@@ -55,13 +56,13 @@ struct ValoracionCancion {
     void agregarValoracion(double val) {
         suma_valoraciones += val;
         num_valoraciones++;
-        promedio = suma_valoraciones / num_valoraciones; //Para basarnos para las 10 mejores canciones segun la cantidad de valoraciones tmb
+        promedio = suma_valoraciones / num_valoraciones;
     }
-    bool operator<(const ValoracionCancion& other) const {
-        return promedio < other.promedio;
+    CancionMejor toCancionMejor() const {
+        return CancionMejor(codigo_cancion, promedio, num_valoraciones);
     }
-    bool operator>(const ValoracionCancion& other) const {
-        return promedio > other.promedio;
+    CancionPeor toCancionPeor() const {
+        return CancionPeor(codigo_cancion, promedio, num_valoraciones);
     }
 };
 //B Tree 10 mejores 10 peores

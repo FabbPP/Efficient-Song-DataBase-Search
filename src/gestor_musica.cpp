@@ -7,20 +7,17 @@ GestorMusica::~GestorMusica() {}
 bool GestorMusica::cargarCSV(const std::string& archivo) {
     std::ifstream file(archivo);
     if (!file.is_open()) {
-        std::cerr << "Error: No se pudo abrir el archivo " << archivo << std::endl;
+        std::cerr << "No se puede encontrar/abrir el archivo " << archivo << std::endl;
         return false;
     }
-    
     std::string linea;
     int linea_num = 0;
-    
     while (std::getline(file, linea)) {
         linea_num++;
         if (linea.empty()) continue;
         
         std::stringstream ss(linea);
         std::string usuario, cancion, valoracion_str, coordenada_str;
-        
         if (std::getline(ss, usuario, ',') &&
             std::getline(ss, cancion, ',') &&
             std::getline(ss, valoracion_str, ',') &&
@@ -29,19 +26,18 @@ bool GestorMusica::cargarCSV(const std::string& archivo) {
                 double valoracion = std::stod(valoracion_str);
                 double coordenada_x = std::stod(coordenada_str); // Cuando la carga supera 75%
                 if (linea_num % 10000 == 0) {
-                    std::cout << "Procesadas " << linea_num << " líneas..." << std::endl;
+                    std::cout << "Procesadas " << linea_num << std::endl;
                 }
-                
             } catch (const std::exception& e) {
-                std::cerr << "Error en línea " << linea_num << ": " << e.what() << std::endl;
+                std::cerr << "Error " << linea_num << ": " << e.what() << std::endl;
             }
         }
     }
     file.close();
-    std::cout << "Lineas procesadas: " << linea_num << std::endl;
+    std::cout << "Lineas procesadas, proceso terminado : " << linea_num << std::endl;
     return true;
 }
-/*
+
 void GestorMusica::agregarValoracion(const std::string& usuario, const std::string& cancion, 
                                    double valoracion, double coordenada_x) {
     // Buscar valoración existente
@@ -124,4 +120,3 @@ template class BTree<CancionMejor, 20>;
 template class BTree<CancionPeor, 20>;
 template class Node<CancionMejor, 20>;
 template class Node<CancionPeor, 20>;
-*/

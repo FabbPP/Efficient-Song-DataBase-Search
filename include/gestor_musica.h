@@ -10,6 +10,7 @@
 #include "../../include/structures/HashTable.h"
 #include "../models/cancion.h"
 #include "../../include/structures/BTree.h"
+#include "../../include/structures/Node.h"
 
 class GestorMusica {
 private:
