@@ -386,8 +386,8 @@ public:
         
         
         if (cancionesComunes == 0) return 0.0;
-
-        int respuesta = 1.0 / (1.0 + distanciaManhattan / cancionesComunes);
+        cout<<"caniconesComunes "<<cancionesComunes<<"distancia"<<distanciaManhattan<<"\n";
+        double respuesta = 1.0 / (1.0 + distanciaManhattan / cancionesComunes);
         if (respuesta == 1 ){
             cout<<"caniconesComunes "<<cancionesComunes<<"distancia"<<distanciaManhattan<<"\n";
             cout<<"respuesta"<<respuesta<<"\n";
