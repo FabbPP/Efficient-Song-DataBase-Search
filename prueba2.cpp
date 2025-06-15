@@ -369,18 +369,31 @@ public:
     double calcularSimilaridad(const Usuario& otro) const {
         double distanciaManhattan = 0.0;
         int cancionesComunes = 0;
+
         
+  
         for (const auto& par : valoraciones) {
-            if (otro.tieneValoracion(par.first)) {
-                double diff = abs(par.second.coordenadaX - 
-                                 otro.getValoracion(par.first).coordenadaX);
+            const string& codigoCancion = par.first;
+            const Valoracion& valoracion1 = par.second;
+
+            if (otro.tieneValoracion(codigoCancion)) {
+                const Valoracion& valoracion2 = otro.getValoracion(codigoCancion);
+                double diff = abs(valoracion1.valoracion - valoracion2.valoracion);
                 distanciaManhattan += diff;
                 cancionesComunes++;
             }
         }
         
+        
         if (cancionesComunes == 0) return 0.0;
-        return 1.0 / (1.0 + distanciaManhattan / cancionesComunes);
+
+        int respuesta = 1.0 / (1.0 + distanciaManhattan / cancionesComunes);
+        if (respuesta == 1 ){
+            cout<<"caniconesComunes "<<cancionesComunes<<"distancia"<<distanciaManhattan<<"\n";
+            cout<<"respuesta"<<respuesta<<"\n";
+        }
+
+        return respuesta;
     }
 };
 
@@ -511,11 +524,13 @@ public:
         if (canciones.find(codigoCancion) == canciones.end()) {
             return {};
         }
+        cout<<"entro a canciones similares\n";
         
         const Cancion& cancionBase = canciones[codigoCancion];
         vector<pair<string, double>> distancias;
         
         for (const auto& par : canciones) {
+            cout<<"entro a canciones similares / for \n";
             if (par.first == codigoCancion) continue;
             
             double distancia = calcularDistanciaManhattan(cancionBase, par.second);
@@ -536,9 +551,11 @@ public:
     }
     
     vector<string> recomendarCanciones(const string& codigoUsuario, int cantidad = 5) {
-        if (usuarios.find(codigoUsuario) == usuarios.end()) {
+        if (usuarios.find(codigoUsuario) == usuarios.end()) {//verificar que existe
+            cout<<"No existe usuario";
             return {};
         }
+    
         
         const Usuario& usuarioBase = usuarios[codigoUsuario];
         
@@ -596,11 +613,13 @@ public:
     
 private:
     double calcularDistanciaManhattan(const Cancion& c1, const Cancion& c2) {
+        //obetnemos las valoraciones de las canciones a comparar
         const auto& vals1 = c1.getValoraciones();
         const auto& vals2 = c2.getValoraciones();
         
         if (vals1.empty() || vals2.empty()) {
             return numeric_limits<double>::max();
+            //si es maxima es que es muy difrente
         }
         
         double sumaDistancias = 0.0;
@@ -609,7 +628,8 @@ private:
         for (const auto& val1 : vals1) {
             for (const auto& val2 : vals2) {
                 if (val1.codigoUsuario == val2.codigoUsuario) {
-                    sumaDistancias += abs(val1.coordenadaX - val2.coordenadaX);
+                    cout<<val1.codigoUsuario<<"-\n ";
+                    sumaDistancias += abs(val1.valoracion - val2.valoracion);
                     comparaciones++;
                 }
             }
