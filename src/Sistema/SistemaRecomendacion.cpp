@@ -1,84 +1,189 @@
-#include "../include/structures/BTree.h"
-#include "../include/gestor_musica.h"
-#include <fstream>
-#include <sstream>
-#include <iostream>
+#include "SistemaRecomendacion.h"
+#include <cmath>
 
-GestorMusica::GestorMusica() {}
+bool SistemaRecomendacion::procesarLinea(const string& linea) {
+    stringstream ss(linea);
+    string codigoUsuario, codigoCancion, valoracionStr, coordenadaStr;
 
-GestorMusica::~GestorMusica() {}
-
-bool GestorMusica::cargarCSV(const string& archivo) {
-    ifstream file(archivo);
-    if (!file.is_open()) {
-        cerr << "Error: No se pudo abrir el archivo " << archivo << endl;
+    if (!getline(ss, codigoUsuario, ',') ||
+        !getline(ss, codigoCancion, ',') ||
+        !getline(ss, valoracionStr, ',') ||
+        !getline(ss, coordenadaStr, ',')) {
         return false;
     }
-    
-    string linea;
-    int lineas_procesadas = 0;
-    
-    while (getline(file, linea)) {
-        if (linea.empty()) continue;
-        
-        stringstream ss(linea);
-        string codigo_usuario, codigo_cancion, valoracion_str, coordenada_str;
-        
-        if (getline(ss, codigo_usuario, ',') &&
-            getline(ss, codigo_cancion, ',') &&
-            getline(ss, valoracion_str, ',') &&
-            getline(ss, coordenada_str)) {
-            
-            try {
-                double valoracion = stod(valoracion_str);
-                double coordenada = stod(coordenada_str);
-                
-                procesarRegistro(codigo_usuario, codigo_cancion, valoracion, coordenada);
-                lineas_procesadas++;
-            } catch (const exception& e) {
-                cerr << "Error procesando línea: " << linea << " - " << e.what() << endl;
+
+    try {
+        double valoracion = stod(valoracionStr);
+        double coordenadaX = stod(coordenadaStr);
+
+        Valoracion val(codigoUsuario, codigoCancion, valoracion, coordenadaX);
+
+        if (usuarios.find(codigoUsuario) == usuarios.end()) {
+            usuarios[codigoUsuario] = Usuario(codigoUsuario);
+        }
+        usuarios[codigoUsuario].agregarValoracion(val);
+
+        if (canciones.find(codigoCancion) == canciones.end()) {
+            canciones[codigoCancion] = Cancion(codigoCancion);
+        }
+        canciones[codigoCancion].agregarValoracion(val);
+
+        return true;
+    } catch (const exception& e) {
+        return false;
+    }
+}
+
+double SistemaRecomendacion::calcularDistanciaManhattan(const Cancion& c1, const Cancion& c2) {
+    const auto& vals1 = c1.getValoraciones();
+    const auto& vals2 = c2.getValoraciones();
+
+    if (vals1.empty() || vals2.empty()) {
+        return numeric_limits<double>::max();
+    }
+
+    double sumaDistancias = 0.0;
+    int comparaciones = 0;
+
+    for (const auto& val1 : vals1) {
+        for (const auto& val2 : vals2) {
+            if (val1.codigoUsuario == val2.codigoUsuario) {
+                sumaDistancias += abs(val1.valoracion - val2.valoracion);
+                comparaciones++;
             }
         }
     }
-    
-    file.close();
-    cout << "Archivo cargado exitosamente. Líneas procesadas: " << lineas_procesadas << endl;
-    
-    // Reconstruir B-Tree después de cargar todos los datos
-    reconstruirBTree();
+
+    return comparaciones > 0 ? sumaDistancias / comparaciones : 
+                               numeric_limits<double>::max();
+}
+
+bool SistemaRecomendacion::leerCSV(const string& nombreArchivo) {
+    ifstream archivo(nombreArchivo);
+    if (!archivo.is_open()) {
+        cerr << "Error al abrir archivo: " << nombreArchivo << endl;
+        return false;
+    }
+
+    string linea;
+    size_t lineasProcesadas = 0;
+
+    while (getline(archivo, linea)) {
+        if (!procesarLinea(linea)) {
+            cerr << "Error procesando linea: " << linea << endl;
+        } else {
+            lineasProcesadas++;
+        }
+    }
+
+    archivo.close();
+    actualizarBTree();
     return true;
 }
 
-vector<Cancion> GestorMusica::getMejores10() {
-    return btree_canciones.getTop(10);
-}
-
-vector<Cancion> GestorMusica::getPeores10() {
-    return btree_canciones.getBottom(10);
-}
-
-
-
-void GestorMusica::mostrarEstadisticas() {
-    cout << "\n=== ESTADISTICAS DEL GESTOR MUSICAL ===" << endl;
-    cout << "Elementos en B-Tree: " << btree_canciones.getCount() << endl;
-    
-    cout << "\n=== TOP 10 MEJORES CANCIONES ===" << endl;
-    auto mejores = getMejores10();
-    for (size_t i = 0; i < mejores.size(); i++) {
-        cout << (i + 1) << ". ";
-        mejores[i].print();
-    }
-    
-    cout << "\n=== TOP 10 PEORES CANCIONES ===" << endl;
-    auto peores = getPeores10();
-    for (size_t i = 0; i < peores.size(); i++) {
-        cout << (i + 1) << ". ";
-        peores[i].print();
+void SistemaRecomendacion::actualizarBTree() {
+    btreeValoraciones = BTree<CancionValoracion, 5>();
+    for (const auto& par : canciones) {
+        CancionValoracion cv(par.first, par.second.getPromedioValoracion());
+        btreeValoraciones.Insert(cv);
     }
 }
 
-void GestorMusica::mostrarBTree() {
-    cout << "\n=== CONTENIDO DEL B-TREE (Orden de insercion) ===" << endl;
-    btree_canciones.Print();
+vector<string> SistemaRecomendacion::mejoresCanciones(int cantidad) {
+    vector<CancionValoracion> mejores = btreeValoraciones.getTopN(cantidad);
+    vector<string> resultado;
+    for (const auto& cv : mejores) {
+        resultado.push_back(cv.codigoCancion);
+    }
+    return resultado;
+}
+
+vector<string> SistemaRecomendacion::peoresCanciones(int cantidad) {
+    vector<CancionValoracion> peores = btreeValoraciones.getBottomN(cantidad);
+    vector<string> resultado;
+    for (const auto& cv : peores) {
+        resultado.push_back(cv.codigoCancion);
+    }
+    return resultado;
+}
+
+vector<string> SistemaRecomendacion::cancionesSimilares(const string& codigoCancion, int cantidad) {
+    if (canciones.find(codigoCancion) == canciones.end()) {
+        return {};
+    }
+
+    const Cancion& cancionBase = canciones[codigoCancion];
+    vector<pair<string, double>> distancias;
+
+    for (const auto& par : canciones) {
+        if (par.first == codigoCancion) continue;
+        double distancia = calcularDistanciaManhattan(cancionBase, par.second);
+        if (distancia != numeric_limits<double>::max()) {
+            distancias.push_back({par.first, distancia});
+        }
+    }
+
+    sort(distancias.begin(), distancias.end(), 
+         [](const auto& a, const auto& b) { return a.second < b.second; });
+
+    vector<string> resultado;
+    for (int i = 0; i < min(cantidad, (int)distancias.size()); i++) {
+        resultado.push_back(distancias[i].first);
+    }
+
+    return resultado;
+}
+
+vector<string> SistemaRecomendacion::recomendarCanciones(const string& codigoUsuario, int cantidad) {
+    if (usuarios.find(codigoUsuario) == usuarios.end()) {
+        return {};
+    }
+
+    const Usuario& usuarioBase = usuarios[codigoUsuario];
+    vector<pair<string, double>> usuariosSimilares;
+
+    for (const auto& par : usuarios) {
+        if (par.first == codigoUsuario) continue;
+        double similaridad = usuarioBase.calcularSimilaridad(par.second);
+        if (similaridad > 0) {
+            usuariosSimilares.push_back({par.first, similaridad});
+        }
+    }
+
+    sort(usuariosSimilares.begin(), usuariosSimilares.end(),
+         [](const auto& a, const auto& b) { return a.second > b.second; });
+
+    map<string, double> cancionesRecomendadas;
+    int usuariosConsiderados = min(10, (int)usuariosSimilares.size());
+
+    for (int i = 0; i < usuariosConsiderados; i++) {
+        const Usuario& usuarioSimilar = usuarios[usuariosSimilares[i].first];
+        double pesoSimilaridad = usuariosSimilares[i].second;
+
+        for (const auto& valPar : usuarioSimilar.getValoraciones()) {
+            const string& codigoCancion = valPar.first;
+            if (!usuarioBase.tieneValoracion(codigoCancion)) {
+                cancionesRecomendadas[codigoCancion] += valPar.second.valoracion * pesoSimilaridad;
+            }
+        }
+    }
+
+    vector<pair<string, double>> ranking(cancionesRecomendadas.begin(), cancionesRecomendadas.end());
+    sort(ranking.begin(), ranking.end(),
+         [](const auto& a, const auto& b) { return a.second > b.second; });
+
+    vector<string> resultado;
+    for (int i = 0; i < min(cantidad, (int)ranking.size()); i++) {
+        resultado.push_back(ranking[i].first);
+    }
+
+    return resultado;
+}
+
+void SistemaRecomendacion::mostrarEstadisticas() {
+    cout << "\n------- ESTADISTICAS DEL SISTEMA -------" << endl;
+    cout << "Total de usuarios: " << usuarios.size() << endl;
+    cout << "Total de canciones: " << canciones.size() << endl;
+    cout << "\nEstructura del B-Tree de valoraciones:" << endl;
+    btreeValoraciones.Print();
 }
