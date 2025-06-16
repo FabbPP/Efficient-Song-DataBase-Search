@@ -1,1 +1,8 @@
-./vscode/*
+build/
+*.exe
+*.o
+*.out
+*.log
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
