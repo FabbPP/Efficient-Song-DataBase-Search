@@ -9,7 +9,8 @@ void Cancion::calcularPromedio() {
     for (const auto& val : valoraciones) {
         suma += val.valoracion;
     }
-    promedioValoracion = suma; // Originalmente usabas suma/valoraciones.size()
+    promedioValoracion = suma; 
+    //suma/valoraciones.size()
 }
 
 void Cancion::agregarValoracion(const Valoracion& val) {
